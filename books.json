@@ -1,5 +1,16 @@
 [
   {
+    "id": "book-1792785387271",
+    "title": "Mặt trăng và đồng sáu xu",
+    "author": "William Somerset Maugham",
+    "category": "Văn học",
+    "driveUrl": "https://drive.google.com/file/d/1toa08GiZ92EZkjdnS0fo4nz9Rz-4ABCH/view?usp=drive_link",
+    "coverUrl": "https://lh3.googleusercontent.com/d/1ECf91slfyQC3QRNEuC2gwq8d2z2cTK92",
+    "totalPages": 331,
+    "description": "Mặt trăng và đồng sáu xu diễn tả giữa ước mơ và thực tế.",
+    "addedAt": 1792785387271
+  },
+  {
     "id": "book-1792781605886",
     "title": "Chiến tranh và hòa bình",
     "author": "Lev Tolstoy",
