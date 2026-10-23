@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nav Book - Thư Viện Sách Trực Tuyến</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Lora', 'serif'],
+          },
+          colors: {
+            sand: {
+              50: '#FBF9F5',
+              100: '#F5F2EB',
+              200: '#ECE5D8',
+              800: '#3A352F',
+              900: '#23201C',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
+    
+    .book-card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .book-card-shadow:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 15px -5px rgba(0, 0, 0, 0.08);
+    }
+    .book-spine { box-shadow: inset 4px 0 6px -2px rgba(0,0,0,0.25); }
+
+    /* Theme filter cho trang đọc */
+    .reader-theme-paper {
+      background-color: #121212;
+    }
+    .reader-theme-sepia {
+      background-color: #26201a;
+    }
+    .reader-theme-sepia iframe {
+      filter: sepia(35%) brightness(95%) contrast(98%);
+    }
+    .reader-theme-dark {
+      background-color: #0d0d0d;
+    }
+    .reader-theme-dark iframe {
+      filter: invert(90%) hue-rotate(180deg) contrast(90%);
+    }
+  </style>
+</head>
+<body class="bg-sand-50 text-sand-900 font-sans antialiased min-h-screen flex flex-col selection:bg-amber-100 selection:text-amber-900">
+
+  <!-- ==================== HEADER ==================== -->
+  <header id="mainHeader" class="sticky top-0 z-40 bg-sand-50/90 backdrop-blur-md border-b border-sand-200/80 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="closeReader()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-700 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-900/10">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="font-serif text-xl font-bold tracking-tight text-sand-900">Nav Book<span class="text-amber-700 font-sans font-light text-xs ml-1.5 px-2 py-0.5 rounded-full bg-amber-100/80 text-amber-900">Reader</span></span>
+          <p class="text-[11px] text-gray-500 hidden sm:block">Thư viện đọc sách trực tuyến</p>
+        </div>
+      </div>
+
+      <!-- Thanh Tìm Kiếm -->
+      <div class="flex items-center space-x-3">
+        <div class="relative w-48 sm:w-64 lg:w-80">
+          <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input 
+            type="text" 
+            id="searchInput"
+            oninput="handleSearch(this.value)"
+            placeholder="Tìm tên sách, tác giả..." 
+            class="w-full pl-9 pr-4 py-1.5 text-xs sm:text-sm bg-sand-100 border border-sand-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-600/30 transition-all"
+          >
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main id="mainContainer" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========== VIEW 1: TRANG CHỦ (TỦ SÁCH ĐỘC GIẢ) ========== -->
+    <section id="viewHome" class="space-y-8">
+      <!-- Banner Chào Mừng -->
+      <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-amber-900 via-stone-800 to-amber-950 text-white p-6 sm:p-10 shadow-lg">
+        <div class="max-w-2xl relative z-10 space-y-3">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-amber-200 text-xs font-medium">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Thư viện trực tuyến
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-serif font-bold tracking-tight text-white leading-tight">
+            Nuôi dưỡng tâm hồn qua từng trang sách
+          </h1>
+          <p class="text-stone-300 text-xs sm:text-sm font-light">
+            Đọc tài liệu, sách điện tử mượt mà từ Google Drive. Trình duyệt tự động ghi nhớ trang sách bạn đang đọc dở dang.
+          </p>
+        </div>
+        <div class="absolute right-0 bottom-0 opacity-15 sm:opacity-25 pointer-events-none translate-x-10 translate-y-10">
+          <i data-lucide="library" class="w-80 h-80"></i>
+        </div>
+      </div>
+
+      <!-- Danh mục Lọc & Số lượng sách -->
+      <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between pb-2 border-b border-sand-200">
+        <div class="flex items-center gap-2 overflow-x-auto w-full pb-2 sm:pb-0" id="categoryFilters">
+          <button onclick="filterCategory('all')" class="cat-pill active px-3.5 py-1.5 text-xs font-medium rounded-full bg-amber-700 text-white shadow-sm transition-all whitespace-nowrap" data-cat="all">Tất cả</button>
+          <button onclick="filterCategory('Văn học')" class="cat-pill px-3.5 py-1.5 text-xs font-medium rounded-full bg-sand-200/60 text-sand-800 hover:bg-sand-200 transition-all whitespace-nowrap" data-cat="Văn học">Văn học</button>
+          <button onclick="filterCategory('Kỹ năng')" class="cat-pill px-3.5 py-1.5 text-xs font-medium rounded-full bg-sand-200/60 text-sand-800 hover:bg-sand-200 transition-all whitespace-nowrap" data-cat="Kỹ năng">Kỹ năng</button>
+          <button onclick="filterCategory('Kinh doanh')" class="cat-pill px-3.5 py-1.5 text-xs font-medium rounded-full bg-sand-200/60 text-sand-800 hover:bg-sand-200 transition-all whitespace-nowrap" data-cat="Kinh doanh">Kinh doanh</button>
+          <button onclick="filterCategory('Công nghệ')" class="cat-pill px-3.5 py-1.5 text-xs font-medium rounded-full bg-sand-200/60 text-sand-800 hover:bg-sand-200 transition-all whitespace-nowrap" data-cat="Công nghệ">Công nghệ</button>
+          <button onclick="filterCategory('Khác')" class="cat-pill px-3.5 py-1.5 text-xs font-medium rounded-full bg-sand-200/60 text-sand-800 hover:bg-sand-200 transition-all whitespace-nowrap" data-cat="Khác">Khác</button>
+        </div>
+
+        <div class="text-xs text-gray-500 whitespace-nowrap">
+          Hiển thị <span class="font-semibold text-sand-900" id="currentBookCount">0</span> cuốn sách
+        </div>
+      </div>
+
+      <!-- Danh sách bìa sách (Grid) -->
+      <div id="booksGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+        <!-- Render bằng Javascript -->
+      </div>
+
+      <!-- Trạng thái trống -->
+      <div id="emptyState" class="hidden text-center py-16">
+        <i data-lucide="book-x" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+        <h3 class="font-serif text-lg text-sand-800 font-semibold">Chưa tìm thấy sách</h3>
+        <p class="text-xs text-gray-500 mt-1">Hãy thử tìm kiếm với từ khóa khác hoặc chuyển danh mục.</p>
+      </div>
+    </section>
+
+    <!-- ========== VIEW 2: TRÌNH ĐỌC SÁCH TOÀN CẢNH (MAXIMIZED THEATRE READER) ========== -->
+    <section id="viewReader" class="hidden fixed inset-0 z-50 bg-stone-900/98 flex flex-col h-screen w-screen overflow-hidden">
+      <!-- Thanh điều hướng nhỏ gọn (Compact Reader Header) -->
+      <div class="h-12 bg-stone-900 border-b border-stone-800 px-3 sm:px-5 flex items-center justify-between text-white shrink-0 shadow-md">
+        <!-- Nút quay lại & Tiêu đề sách -->
+        <div class="flex items-center gap-3 min-w-0 pr-2">
+          <button 
+            onclick="closeReader()" 
+            class="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition-colors flex items-center gap-1.5 text-xs font-semibold shrink-0"
+            title="Đóng sách và về Tủ sách (Esc)"
+          >
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Tủ sách</span>
+          </button>
+          
+          <div class="border-l border-stone-700 h-4 hidden sm:block"></div>
+          
+          <div class="truncate">
+            <h2 id="readerBookTitle" class="font-serif font-bold text-xs sm:text-sm text-stone-100 truncate">Tên Sách</h2>
+            <p id="readerBookAuthor" class="text-[10px] text-stone-400 truncate hidden md:block">Tác giả</p>
+          </div>
+        </div>
+
+        <!-- Các công cụ điều hướng & hiển thị -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          
+          <!-- Bộ chuyển theme màu đọc sách: Paper, Sepia, Dark -->
+          <div class="flex items-center bg-stone-800 rounded-lg p-0.5 border border-stone-700 text-xs">
+            <button onclick="setReaderTheme('paper')" id="themeBtnPaper" class="px-2 py-1 rounded text-[11px] font-medium bg-stone-700 text-amber-300" title="Màu chuẩn (Paper)">
+              Sáng
+            </button>
+            <button onclick="setReaderTheme('sepia')" id="themeBtnSepia" class="px-2 py-1 rounded text-[11px] font-medium text-stone-400 hover:text-stone-200" title="Chống mỏi mắt (Sepia)">
+              Sepia
+            </button>
+            <button onclick="setReaderTheme('dark')" id="themeBtnDark" class="px-2 py-1 rounded text-[11px] font-medium text-stone-400 hover:text-stone-200" title="Chế độ tối (Dark)">
+              Tối
+            </button>
+          </div>
+
+          <!-- Nút Quản lý Bookmark (Dấu trang) -->
+          <div class="relative">
+            <button 
+              onclick="toggleBookmarkMenu()" 
+              class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs transition-colors border border-stone-700"
+              title="Xem và lưu dấu trang"
+            >
+              <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span class="hidden md:inline">Dấu trang</span>
+              <span id="bookmarkCountBadge" class="ml-0.5 px-1 py-0.2 bg-amber-600/30 text-amber-300 rounded text-[10px]">0</span>
+            </button>
+
+            <!-- Menu xổ xuống của Bookmark -->
+            <div id="bookmarkDropdown" class="hidden absolute right-0 mt-2 w-56 bg-stone-900 border border-stone-700 rounded-xl shadow-2xl p-3 z-50 text-xs space-y-2">
+              <div class="flex items-center justify-between pb-1.5 border-b border-stone-800">
+                <span class="font-semibold text-stone-200">Dấu trang của sách</span>
+                <button onclick="addCurrentPageBookmark()" class="text-[10px] text-amber-400 hover:underline flex items-center gap-0.5">
+                  <i data-lucide="plus" class="w-3 h-3"></i> Lưu trang này
+                </button>
+              </div>
+              <div id="bookmarkList" class="max-h-40 overflow-y-auto space-y-1">
+                <!-- Danh sách bookmark được nạp động -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Chế độ hiển thị: Vừa trang hoặc Rộng ngang -->
+          <button 
+            id="toggleFrameWidthBtn"
+            onclick="toggleFrameWidth()" 
+            class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-[11px] text-stone-300 transition-colors border border-stone-700"
+            title="Đổi khung vừa vặn hoặc mở rộng ngang"
+          >
+            <i data-lucide="stretch-horizontal" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span id="widthModeLabel">Khung chuẩn</span>
+          </button>
+
+          <!-- Bộ điều khiển trang -->
+          <div class="flex items-center gap-1 bg-stone-800 px-2 py-1 rounded-lg border border-stone-700 text-xs">
+            <button onclick="changePage(-1)" class="p-1 hover:bg-stone-700 rounded text-stone-300" title="Trang trước (←)">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+            <div class="flex items-center gap-1 px-1">
+              <span class="text-stone-400 text-[11px] hidden sm:inline">Trang</span>
+              <input 
+                type="number" 
+                id="readerCurrentPageInput" 
+                min="1" 
+                value="1" 
+                onchange="goToPage(this.value)"
+                class="w-11 text-center font-semibold bg-stone-900 border border-stone-700 rounded py-0.5 text-amber-400 focus:outline-none focus:border-amber-500 text-xs"
+              >
+              <span class="text-stone-400 text-[11px]" id="totalPagesCount">/ ...</span>
+            </div>
+            <button onclick="changePage(1)" class="p-1 hover:bg-stone-700 rounded text-stone-300" title="Trang sau (→)">
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Huy hiệu đã lưu trang -->
+          <span id="saveIndicator" class="hidden text-[10px] text-emerald-400 font-medium items-center gap-1 px-2 py-0.5 bg-emerald-950/60 border border-emerald-800 rounded-md">
+            <i data-lucide="check" class="w-3 h-3"></i> <span class="hidden md:inline">Đã nhớ</span>
+          </span>
+
+          <!-- Mở Drive ngoài -->
+          <a id="driveOriginalLink" href="#" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 transition-colors" title="Mở trực tiếp trên Google Drive">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+
+          <!-- Toàn màn hình trình duyệt -->
+          <button onclick="toggleFullscreen()" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 transition-colors" title="Toàn màn hình">
+            <i data-lucide="maximize-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Không gian đọc sách bao trọn màn hình -->
+      <div id="readerViewport" class="reader-theme-paper flex-1 w-full h-[calc(100vh-3rem)] flex justify-center items-center overflow-hidden p-0 sm:p-2 transition-colors duration-300">
+        <div id="driveFrameWrapper" class="w-full h-full max-w-5xl bg-stone-900 shadow-2xl transition-all duration-300 relative rounded-none sm:rounded-xl overflow-hidden border border-stone-800">
+          <iframe 
+            id="driveIframe" 
+            src="" 
+            class="w-full h-full border-0 bg-white"
+            allow="autoplay"
+            title="Đọc sách từ Google Drive">
+          </iframe>
+          
+          <!-- Huy hiệu nổi góc dưới thông báo trang -->
+          <div class="absolute bottom-3 right-3 pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
+            <div class="pointer-events-auto bg-stone-900/90 backdrop-blur-md text-white text-[11px] px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg border border-stone-700">
+              <span id="floatingPageBadge" class="text-amber-400 font-medium">Đang đọc trang 1</span>
+              <span class="text-stone-400 hidden sm:inline">• Tự nhớ tiến độ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer id="mainFooter" class="mt-auto border-t border-sand-200 bg-sand-100/60 text-center py-6 text-xs text-gray-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="font-serif font-semibold text-sand-800">Nav Book</span>
+        <span>• Không gian đọc sách trực tuyến dịu mắt</span>
+      </div>
+      <div>Tiến độ đọc được tự động lưu trên trình duyệt của bạn</div>
+    </div>
+  </footer>
+
+  <!-- Notification Toast -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-stone-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toastMsg">Thao tác thành công</span>
+    </div>
+  </div>
+
+  <!-- DỮ LIỆU SÁCH DỰ PHÒNG (FALLBACK OFFLINE LOCAL DATA) -->
+  <script id="nav-book-fallback">
+    window.NAV_BOOKS_FALLBACK = [
+      {
+        "id": "book-1792781605886",
+        "title": "Chiến tranh và hòa bình",
+        "author": "Lev Tolstoy",
+        "category": "Văn học",
+        "driveUrl": "https://drive.google.com/file/d/13YL9q-PvvRkgE3f-OLbjZtoz_4C0CHpO/view?usp=drive_link",
+        "coverUrl": "https://lh3.googleusercontent.com/d/1R2Kh2lDaonke0Y4gGY-A2yXNWA8sKyRy",
+        "totalPages": 2561,
+        "description": "Chiến tranh và hòa bình.",
+        "addedAt": 1792781605886
+      },
+      {
+        "id": "book-1792781502613",
+        "title": "Hai số phận",
+        "author": "Jeffrey Archer",
+        "category": "Văn học",
+        "driveUrl": "https://drive.google.com/file/d/1Bgr5tTTn-YSPp23JVjUKFG-KGpmHtYKf/view?usp=drive_link",
+        "coverUrl": "https://lh3.googleusercontent.com/d/1CcX8m1zxHM0KyYfwPT1ex6lbhgN-8BFC",
+        "totalPages": 557,
+        "description": "Hai số phận.",
+        "addedAt": 1792781502613
+      },
+      {
+        "id": "book-1792781219577",
+        "title": "Lược sử loài người",
+        "author": "Yuval Noah Harari",
+        "category": "Văn học",
+        "driveUrl": "https://drive.google.com/file/d/13HH2_zHsTH2CMtlyFs6OgSn9y3zcImRh/view?usp=drive_link",
+        "coverUrl": "https://lh3.googleusercontent.com/d/1hTqqqiiVMcIjvgUYmh3aglq1cd6Kp-pt",
+        "totalPages": 677,
+        "description": "Lược sử loài người",
+        "addedAt": 1792781219577
+      },
+      {
+        "id": "book-1792778636807",
+        "title": "SoC Physical Design",
+        "author": "Veena S. Chakravarthi",
+        "category": "Công nghệ",
+        "driveUrl": "https://drive.google.com/file/d/1GGBMkOvImPRut0f9xGAnclUwc3h1a4ea/view?usp=sharing",
+        "coverUrl": "https://lh3.googleusercontent.com/d/1ZlxmKCb3Ur8VgPBwLuK4lRfRbT4NgvOa",
+        "totalPages": 173,
+        "description": "Sách về thiết kế vi mạch SoC.",
+        "addedAt": 1792778636807
+      }
+    ];
+  </script>
+
+  <!-- ==================== JAVASCRIPT READER ==================== -->
+  <script>
+    let books = [];
+    let readingProgress = {};
+    let bookBookmarks = {};
+    let currentReadingBook = null;
+    let currentReadingPage = 1;
+    let currentCategoryFilter = 'all';
+    let searchQuery = '';
+    let isFullWidthMode = false;
+    let currentTheme = 'paper';
+
+    window.onload = async function() {
+      loadReadingProgress();
+      loadBookmarks();
+      await fetchBooksData();
+      setupKeyboardNavigation();
+      lucide.createIcons();
+    };
+
+    // Tự động tải từ file books.json (hoặc lấy từ fallback nếu mở offline)
+    async function fetchBooksData() {
+      try {
+        const res = await fetch('./books.json?t=' + Date.now());
+        if (res.ok) {
+          books = await res.json();
+        } else {
+          books = window.NAV_BOOKS_FALLBACK || [];
+        }
+      } catch (err) {
+        books = window.NAV_BOOKS_FALLBACK || [];
+      }
+      renderBookGrid();
+    }
+
+    function loadReadingProgress() {
+      try {
+        const stored = localStorage.getItem('navbook_user_progress');
+        readingProgress = stored ? JSON.parse(stored) : {};
+      } catch (e) {
+        readingProgress = {};
+      }
+    }
+
+    function saveReadingProgress() {
+      localStorage.setItem('navbook_user_progress', JSON.stringify(readingProgress));
+    }
+
+    function loadBookmarks() {
+      try {
+        const stored = localStorage.getItem('navbook_user_bookmarks');
+        bookBookmarks = stored ? JSON.parse(stored) : {};
+      } catch (e) {
+        bookBookmarks = {};
+      }
+    }
+
+    function saveBookmarks() {
+      localStorage.setItem('navbook_user_bookmarks', JSON.stringify(bookBookmarks));
+    }
+
+    function renderBookGrid() {
+      const grid = document.getElementById('booksGrid');
+      const emptyState = document.getElementById('emptyState');
+      grid.innerHTML = '';
+
+      let filtered = books.filter(book => {
+        const matchCat = (currentCategoryFilter === 'all' || book.category === currentCategoryFilter);
+        const matchSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            book.author.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchCat && matchSearch;
+      });
+
+      document.getElementById('currentBookCount').innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filtered.forEach(book => {
+        const progress = readingProgress[book.id];
+        const lastPage = progress ? progress.lastPage : 1;
+        const total = book.totalPages || 100;
+        const percent = Math.min(100, Math.round((lastPage / total) * 100));
+
+        const card = document.createElement('div');
+        card.className = "group cursor-pointer flex flex-col";
+        card.onclick = () => openReader(book.id);
+
+        card.innerHTML = `
+          <div class="relative aspect-[3/4.4] rounded-2xl overflow-hidden bg-sand-200 book-card-shadow book-spine mb-3 border border-sand-300/60">
+            <img 
+              src="${book.coverUrl || 'https://placehold.co/400x600/3A352F/FBF9F5?text=' + encodeURIComponent(book.title)}" 
+              alt="${book.title}" 
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onerror="this.src='https://placehold.co/400x600/3A352F/FBF9F5?text=Nav+Book'"
+            >
+            ${progress ? `
+              <div class="absolute bottom-2 left-2 right-2 bg-stone-900/85 backdrop-blur-md rounded-xl p-2 text-white shadow-lg">
+                <div class="flex justify-between items-center text-[10px] mb-1">
+                  <span class="text-amber-300 font-medium flex items-center gap-1">
+                    <i data-lucide="bookmark" class="w-3 h-3"></i> Đang đọc
+                  </span>
+                  <span>Trang ${lastPage}/${total}</span>
+                </div>
+                <div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-amber-400 h-full rounded-full transition-all" style="width: ${percent}%"></div>
+                </div>
+              </div>
+            ` : `
+              <div class="absolute inset-0 bg-stone-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span class="bg-white/95 backdrop-blur text-sand-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-amber-700"></i> Đọc sách
+                </span>
+              </div>
+            `}
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-[10px] uppercase font-semibold text-amber-700 tracking-wider">${book.category || 'Tài liệu'}</span>
+            <h3 class="font-serif font-bold text-sm text-sand-900 leading-snug line-clamp-2 group-hover:text-amber-800 transition-colors">
+              ${book.title}
+            </h3>
+            <p class="text-xs text-gray-500 truncate">${book.author}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function filterCategory(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "cat-pill active px-3.5 py-1.5 text-xs font-medium rounded-full bg-amber-700 text-white shadow-sm transition-all whitespace-nowrap";
+        } else {
+          btn.className = "cat-pill px-3.5 py-1.5 text-xs font-medium rounded-full bg-sand-200/60 text-sand-800 hover:bg-sand-200 transition-all whitespace-nowrap";
+        }
+      });
+      renderBookGrid();
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.trim();
+      renderBookGrid();
+    }
+
+    function formatGoogleDriveUrl(url) {
+      if (!url) return '';
+      const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/file/d/${match[1]}/preview`;
+      }
+      return url;
+    }
+
+    function openReader(bookId) {
+      const book = books.find(b => b.id === bookId);
+      if (!book) return;
+
+      currentReadingBook = book;
+      const saved = readingProgress[bookId];
+      currentReadingPage = saved && saved.lastPage ? saved.lastPage : 1;
+
+      // Cập nhật thông tin trên thanh điều khiển
+      document.getElementById('readerBookTitle').innerText = book.title;
+      document.getElementById('readerBookAuthor').innerText = book.author;
+      document.getElementById('readerCurrentPageInput').value = currentReadingPage;
+      document.getElementById('totalPagesCount').innerText = `/ ${book.totalPages || '?'}`;
+      document.getElementById('floatingPageBadge').innerText = `Đang đọc trang ${currentReadingPage}`;
+
+      const finalUrl = formatGoogleDriveUrl(book.driveUrl);
+      document.getElementById('driveIframe').src = finalUrl;
+      document.getElementById('driveOriginalLink').href = book.driveUrl;
+
+      // Cập nhật danh sách bookmark của sách
+      updateBookmarkDropdown();
+
+      // Ẩn Header, Footer và hiển thị chế độ đọc toàn màn hình tối ưu
+      document.getElementById('mainHeader').classList.add('hidden');
+      document.getElementById('mainFooter').classList.add('hidden');
+      document.getElementById('viewHome').classList.add('hidden');
+      document.getElementById('viewReader').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+
+      lucide.createIcons();
+      showToast(`Mở sách ở kích thước tối ưu (Trang ${currentReadingPage})`);
+    }
+
+    function closeReader() {
+      if (currentReadingBook) {
+        saveCurrentProgress(currentReadingPage);
+      }
+      document.getElementById('driveIframe').src = '';
+      currentReadingBook = null;
+
+      // Ẩn dropdown bookmark nếu đang mở
+      document.getElementById('bookmarkDropdown').classList.add('hidden');
+
+      // Hiển thị lại Header, Footer và Tủ sách
+      document.getElementById('mainHeader').classList.remove('hidden');
+      document.getElementById('mainFooter').classList.remove('hidden');
+      document.getElementById('viewReader').classList.add('hidden');
+      document.getElementById('viewHome').classList.remove('hidden');
+      document.body.classList.remove('overflow-hidden');
+
+      renderBookGrid();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleFrameWidth() {
+      const wrapper = document.getElementById('driveFrameWrapper');
+      const label = document.getElementById('widthModeLabel');
+      isFullWidthMode = !isFullWidthMode;
+
+      if (isFullWidthMode) {
+        wrapper.classList.remove('max-w-5xl');
+        wrapper.classList.add('max-w-full', 'rounded-none');
+        label.innerText = "Tràn viền";
+        showToast("Đã chuyển chế độ đọc tràn viền màn hình");
+      } else {
+        wrapper.classList.add('max-w-5xl');
+        wrapper.classList.remove('max-w-full', 'rounded-none');
+        label.innerText = "Khung chuẩn";
+        showToast("Đã chuyển về khung tỷ lệ trang chuẩn");
+      }
+    }
+
+    function setReaderTheme(theme) {
+      currentTheme = theme;
+      const viewport = document.getElementById('readerViewport');
+      viewport.className = `reader-theme-${theme} flex-1 w-full h-[calc(100vh-3rem)] flex justify-center items-center overflow-hidden p-0 sm:p-2 transition-colors duration-300`;
+
+      // Cập nhật trạng thái nút
+      const btnPaper = document.getElementById('themeBtnPaper');
+      const btnSepia = document.getElementById('themeBtnSepia');
+      const btnDark = document.getElementById('themeBtnDark');
+
+      [btnPaper, btnSepia, btnDark].forEach(btn => {
+        btn.className = "px-2 py-1 rounded text-[11px] font-medium text-stone-400 hover:text-stone-200";
+      });
+
+      if (theme === 'paper') {
+        btnPaper.className = "px-2 py-1 rounded text-[11px] font-medium bg-stone-700 text-amber-300";
+      } else if (theme === 'sepia') {
+        btnSepia.className = "px-2 py-1 rounded text-[11px] font-medium bg-stone-700 text-amber-300";
+      } else if (theme === 'dark') {
+        btnDark.className = "px-2 py-1 rounded text-[11px] font-medium bg-stone-700 text-amber-300";
+      }
+    }
+
+    function goToPage(page) {
+      if (!currentReadingBook) return;
+      let p = parseInt(page);
+      if (isNaN(p) || p < 1) p = 1;
+      const maxPages = currentReadingBook.totalPages || 9999;
+      if (p > maxPages) p = maxPages;
+
+      currentReadingPage = p;
+      document.getElementById('readerCurrentPageInput').value = p;
+      document.getElementById('floatingPageBadge').innerText = `Đang đọc trang ${p}`;
+      saveCurrentProgress(p);
+    }
+
+    function changePage(delta) {
+      goToPage(currentReadingPage + delta);
+    }
+
+    function saveCurrentProgress(pageNum) {
+      if (!currentReadingBook) return;
+      readingProgress[currentReadingBook.id] = {
+        lastPage: pageNum,
+        lastReadTimestamp: Date.now()
+      };
+      saveReadingProgress();
+
+      const indicator = document.getElementById('saveIndicator');
+      indicator.classList.remove('hidden');
+      indicator.classList.add('flex');
+      setTimeout(() => {
+        indicator.classList.add('hidden');
+        indicator.classList.remove('flex');
+      }, 1500);
+    }
+
+    // ================== BOOKMARK LOGIC ==================
+    function toggleBookmarkMenu() {
+      const menu = document.getElementById('bookmarkDropdown');
+      menu.classList.toggle('hidden');
+    }
+
+    function addCurrentPageBookmark() {
+      if (!currentReadingBook) return;
+      const bookId = currentReadingBook.id;
+      if (!bookBookmarks[bookId]) {
+        bookBookmarks[bookId] = [];
+      }
+
+      if (!bookBookmarks[bookId].includes(currentReadingPage)) {
+        bookBookmarks[bookId].push(currentReadingPage);
+        bookBookmarks[bookId].sort((a, b) => a - b);
+        saveBookmarks();
+        updateBookmarkDropdown();
+        showToast(`Đã lưu dấu trang: Trang ${currentReadingPage}`);
+      } else {
+        showToast(`Trang ${currentReadingPage} đã được đánh dấu từ trước`);
+      }
+    }
+
+    function removeBookmark(page, event) {
+      if (event) event.stopPropagation();
+      if (!currentReadingBook) return;
+      const bookId = currentReadingBook.id;
+      if (bookBookmarks[bookId]) {
+        bookBookmarks[bookId] = bookBookmarks[bookId].filter(p => p !== page);
+        saveBookmarks();
+        updateBookmarkDropdown();
+        showToast(`Đã xóa dấu trang: Trang ${page}`);
+      }
+    }
+
+    function updateBookmarkDropdown() {
+      if (!currentReadingBook) return;
+      const bookId = currentReadingBook.id;
+      const list = bookBookmarks[bookId] || [];
+      const badge = document.getElementById('bookmarkCountBadge');
+      const container = document.getElementById('bookmarkList');
+
+      badge.innerText = list.length;
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-[11px] text-stone-500 py-2 text-center">Chưa có dấu trang nào</p>`;
+        return;
+      }
+
+      list.forEach(page => {
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between p-1.5 hover:bg-stone-800 rounded-lg cursor-pointer text-stone-300";
+        item.onclick = () => {
+          goToPage(page);
+          toggleBookmarkMenu();
+        };
+
+        item.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="bookmark" class="w-3 h-3 text-amber-400"></i>
+            <span>Trang ${page}</span>
+          </div>
+          <button onclick="removeBookmark(${page}, event)" class="p-1 hover:text-red-400 text-stone-500">
+            <i data-lucide="trash-2" class="w-3 h-3"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
+    function toggleFullscreen() {
+      const elem = document.getElementById('viewReader');
+      if (!document.fullscreenElement) {
+        elem.requestFullscreen().catch(() => showToast("Trình duyệt không hỗ trợ toàn màn hình"));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function setupKeyboardNavigation() {
+      window.addEventListener('keydown', (e) => {
+        if (document.getElementById('viewReader').classList.contains('hidden')) return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+          changePage(1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          changePage(-1);
+        } else if (e.key === 'Escape') {
+          closeReader();
+        }
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>

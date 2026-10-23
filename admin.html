@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nav Book - Quản Trị Tủ Sách</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Lora', 'serif'],
+          },
+          colors: {
+            sand: {
+              50: '#FBF9F5',
+              100: '#F5F2EB',
+              200: '#ECE5D8',
+              800: '#3A352F',
+              900: '#23201C',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-sand-50 text-sand-900 font-sans antialiased min-h-screen flex flex-col selection:bg-amber-100 selection:text-amber-900">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="sticky top-0 z-40 bg-sand-50/90 backdrop-blur-md border-b border-sand-200/80 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo Admin -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-stone-800 to-amber-700 text-white flex items-center justify-center shadow-md">
+          <i data-lucide="sliders" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="font-serif text-xl font-bold tracking-tight text-sand-900">Nav Book<span class="text-amber-800 font-sans font-semibold text-xs ml-1.5 px-2 py-0.5 rounded-full bg-amber-200/80">Admin Hub</span></span>
+          <p class="text-[11px] text-gray-500 hidden sm:block">Quản trị & Xuất bản sách trực tiếp</p>
+        </div>
+      </div>
+
+      <!-- Nút Export Files Chính & GitHub Sync -->
+      <div class="flex items-center gap-2">
+        <button 
+          onclick="openGithubModal()" 
+          class="px-3.5 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-sm"
+          title="Đồng bộ trực tiếp lên GitHub không cần tải file"
+        >
+          <i data-lucide="cloud-upload" class="w-4 h-4 text-sky-400"></i>
+          <span>GitHub Sync</span>
+        </button>
+
+        <button 
+          onclick="exportBooksJsonAndHtml()" 
+          class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-lg shadow-emerald-900/20 transition-all transform active:scale-95"
+          title="Tải về file books.json mới nhất và file backup"
+        >
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Xuất File (Export)</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Trạng thái kết nối dữ liệu -->
+    <div class="bg-white border border-sand-200 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <span id="loadStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+            <span class="w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span> Đang nạp dữ liệu...
+          </span>
+          <span class="text-xs text-gray-500" id="sourceFilePathInfo">Nguồn: Đang kiểm tra `books.json`</span>
+        </div>
+        <h2 class="text-lg font-serif font-bold text-sand-900">Quản Lý Tủ Sách Google Drive</h2>
+        <p class="text-xs text-gray-500">
+          Chỉnh sửa, thêm sách mới hoặc xóa sách. Lưu trực tiếp qua <strong>GitHub Sync</strong> hoặc bấm <strong>"Xuất File"</strong> để lấy `books.json`.
+        </p>
+      </div>
+
+      <!-- Tùy chọn nạp thủ công file books.json -->
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <label for="manualFileInput" class="cursor-pointer w-full md:w-auto text-center px-3.5 py-2 bg-sand-100 hover:bg-sand-200 text-sand-800 rounded-xl text-xs font-semibold border border-sand-200 transition-colors flex items-center justify-center gap-1.5">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Nạp books.json
+        </label>
+        <input type="file" id="manualFileInput" accept=".json,.html" class="hidden" onchange="handleManualFileLoad(event)">
+        
+        <button 
+          onclick="openBookModal()" 
+          class="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-sm transition-all whitespace-nowrap"
+        >
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> Thêm Sách
+        </button>
+      </div>
+    </div>
+
+    <!-- Hộp chỉ dẫn lấy link Google Drive chuẩn -->
+    <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 text-xs text-amber-900 space-y-1.5">
+      <div class="flex items-center gap-2 font-semibold">
+        <i data-lucide="help-circle" class="w-4 h-4 text-amber-700"></i>
+        <span>Quy chuẩn đường link Google Drive:</span>
+      </div>
+      <ul class="list-disc list-inside space-y-1 text-stone-700 pl-1">
+        <li><strong>Link đọc file sách:</strong> Đặt quyền chia sẻ là <em>"Bất kỳ ai có đường liên kết này đều có thể xem"</em>. Dán trực tiếp link chia sẻ dạng <code>https://drive.google.com/file/d/.../view</code>.</li>
+        <li><strong>Link ảnh bìa:</strong> Dán link chia sẻ Google Drive, hệ thống <strong>tự động chuyển thành link ảnh trực tiếp</strong> <code>https://lh3.googleusercontent.com/d/{ID}</code>.</li>
+      </ul>
+    </div>
+
+    <!-- Bảng danh sách sách quản trị -->
+    <div class="bg-white border border-sand-200 rounded-3xl overflow-hidden shadow-sm">
+      <div class="p-4 sm:p-5 border-b border-sand-200 flex items-center justify-between">
+        <div class="font-semibold text-sm text-sand-900">
+          Danh sách sách hiện có (<span id="booksTableCount">0</span> cuốn)
+        </div>
+        <div class="text-xs text-gray-500">
+          Mẹo: Sách được lưu tự động trên bộ nhớ đệm
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-sand-100/60 border-b border-sand-200 text-gray-600 font-semibold">
+              <th class="p-3.5 pl-5">Bìa</th>
+              <th class="p-3.5">Tên Sách & Tác Giả</th>
+              <th class="p-3.5">Thể Loại</th>
+              <th class="p-3.5">Số Trang</th>
+              <th class="p-3.5">Google Drive Link</th>
+              <th class="p-3.5 pr-5 text-right">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="booksTableBody" class="divide-y divide-sand-200/70 text-sand-800">
+            <!-- Render bằng Javascript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL THÊM / SỬA SÁCH ==================== -->
+  <div id="bookModal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-sand-200 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-sand-200">
+        <h3 id="modalTitle" class="font-serif font-bold text-lg text-sand-900">Thêm Sách Mới</h3>
+        <button onclick="closeBookModal()" class="p-1.5 rounded-lg hover:bg-sand-100 text-gray-400 hover:text-sand-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveBook(event)" class="space-y-3.5 text-xs sm:text-sm">
+        <input type="hidden" id="editBookId">
+
+        <!-- Tên Sách & Nút Tự Động Điền Thông Tin -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-sand-800">Tên Sách hoặc ISBN <span class="text-red-500">*</span></label>
+            <button 
+              type="button" 
+              id="btnAutoFetchBook"
+              onclick="autoFetchBookMetadata()" 
+              class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
+              title="Tự động tìm kiếm và điền Tác giả, Thể loại, Số trang, Mô tả từ Google Books"
+            >
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-700"></i>
+              <span>⚡ Tự điền thông tin</span>
+            </button>
+          </div>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="modalBookTitle" 
+              required 
+              placeholder="VD: Nhà giả kim hoặc Chiến tranh và hòa bình..." 
+              class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30 text-xs sm:text-sm"
+              onkeydown="if(event.key === 'Enter') { event.preventDefault(); autoFetchBookMetadata(); }"
+            >
+          </div>
+          <p id="fetchBookStatus" class="hidden text-[11px] mt-1 font-medium"></p>
+        </div>
+
+        <!-- Khung danh sách kết quả tìm kiếm nếu có nhiều sách trùng tên -->
+        <div id="bookSuggestionsDropdown" class="hidden border border-amber-200 bg-amber-50/80 rounded-2xl p-2.5 max-h-48 overflow-y-auto space-y-1.5 shadow-inner">
+          <p class="text-[11px] font-semibold text-amber-900 px-1 flex items-center justify-between">
+            <span>Chọn ấn bản phù hợp để tự điền:</span>
+            <button type="button" onclick="closeSuggestions()" class="text-stone-400 hover:text-stone-700 text-xs">✕</button>
+          </p>
+          <div id="bookSuggestionsList" class="space-y-1"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-sand-800 mb-1">Tác Giả <span class="text-red-500">*</span></label>
+            <input type="text" id="modalBookAuthor" required placeholder="VD: Lev Tolstoy" class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30">
+          </div>
+          <div>
+            <label class="block font-semibold text-sand-800 mb-1">Thể Loại</label>
+            <select id="modalBookCategory" class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30">
+              <option value="Văn học">Văn học</option>
+              <option value="Kỹ năng">Kỹ năng</option>
+              <option value="Kinh doanh">Kinh doanh</option>
+              <option value="Công nghệ">Công nghệ</option>
+              <option value="Khoa học">Khoa học</option>
+              <option value="Lịch sử">Lịch sử</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block font-semibold text-sand-800 mb-1">Link File Sách (Google Drive) <span class="text-red-500">*</span></label>
+            <input type="url" id="modalBookDriveUrl" required placeholder="https://drive.google.com/file/d/.../view" class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30 font-mono text-xs">
+          </div>
+          <div>
+            <label class="block font-semibold text-sand-800 mb-1">Tổng Số Trang</label>
+            <input type="number" id="modalBookTotalPages" min="1" placeholder="VD: 500" class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30 text-xs">
+          </div>
+        </div>
+
+        <!-- Ô nhập Link Ảnh Bìa tự động xử lý ID Drive -->
+        <div>
+          <label class="block font-semibold text-sand-800 mb-1">Link Ảnh Bìa (Dán link Google Drive hoặc link ảnh trực tiếp)</label>
+          <input 
+            type="url" 
+            id="modalBookCoverUrl" 
+            oninput="handleCoverInputConvert(this.value)"
+            placeholder="https://drive.google.com/file/d/1BzWr.../view?usp=sharing" 
+            class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30 font-mono text-xs"
+          >
+          <p class="text-[11px] text-amber-800 mt-1" id="coverConvertedHint">
+            💡 Tự động nhận diện ID và đổi thành link trực tiếp <code>lh3.googleusercontent.com/d/ID</code>
+          </p>
+
+          <!-- Khung xem trước ảnh bìa ngay tại form -->
+          <div id="coverPreviewContainer" class="hidden mt-2 p-2 bg-sand-100 rounded-xl flex items-center gap-3">
+            <img id="coverPreviewImg" src="" alt="Bìa" class="w-10 h-14 object-cover rounded shadow-xs">
+            <div class="text-[11px] text-gray-600 truncate flex-1">
+              <span class="font-medium text-emerald-700">Link trực tiếp hợp lệ:</span>
+              <p id="coverPreviewUrlText" class="truncate font-mono text-[10px] text-gray-500"></p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-sand-800 mb-1">Mô Tả / Tóm Tắt Nội Dung</label>
+          <textarea id="modalBookDesc" rows="3" placeholder="Giới thiệu đôi nét về tác phẩm..." class="w-full px-3 py-2 bg-sand-50 border border-sand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-700/30 text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-sand-200">
+          <button type="button" onclick="closeBookModal()" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-sand-100 rounded-xl transition-colors">
+            Hủy Bỏ
+          </button>
+          <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-xl shadow-sm transition-all">
+            Lưu Sách
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL GITHUB DIRECT SYNC (ƯU TIÊN 3) ==================== -->
+  <div id="githubModal" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-sand-200 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-sand-200">
+        <div class="flex items-center gap-2">
+          <i data-lucide="github" class="w-5 h-5 text-sand-900"></i>
+          <h3 class="font-serif font-bold text-base text-sand-900">GitHub API Direct Sync</h3>
+        </div>
+        <button onclick="closeGithubModal()" class="p-1 rounded-lg hover:bg-sand-100 text-gray-400">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-gray-600 space-y-2">
+        <p>Tự động cập nhật trực tiếp file <code>books.json</code> trên GitHub của bạn mà không cần tải file về máy.</p>
+      </div>
+
+      <form onsubmit="handleDirectGithubCommit(event)" class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-semibold text-sand-800 mb-1">GitHub Owner (Tên tài khoản)</label>
+          <input type="text" id="ghOwnerInput" placeholder="VD: your-username" required class="w-full px-3 py-1.5 bg-sand-50 border border-sand-200 rounded-xl text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-sand-800 mb-1">Repository Name (Tên kho chứa)</label>
+          <input type="text" id="ghRepoInput" placeholder="VD: nav-book" required class="w-full px-3 py-1.5 bg-sand-50 border border-sand-200 rounded-xl text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-sand-800 mb-1">Đường dẫn file (Thường là books.json)</label>
+          <input type="text" id="ghPathInput" value="books.json" required class="w-full px-3 py-1.5 bg-sand-50 border border-sand-200 rounded-xl text-xs font-mono">
+        </div>
+        <div>
+          <label class="block font-semibold text-sand-800 mb-1">Personal Access Token (Fine-grained hoặc Classic)</label>
+          <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxx" required class="w-full px-3 py-1.5 bg-sand-50 border border-sand-200 rounded-xl text-xs font-mono">
+          <span class="text-[10px] text-gray-400">Token chỉ lưu cục bộ trên trình duyệt của bạn (localStorage).</span>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-sand-200">
+          <button type="button" onclick="closeGithubModal()" class="px-3.5 py-1.5 text-xs text-gray-600 bg-sand-100 rounded-xl">Đóng</button>
+          <button type="submit" id="ghSubmitBtn" class="px-4 py-1.5 text-xs font-semibold text-white bg-sky-700 hover:bg-sky-800 rounded-xl flex items-center gap-1.5">
+            <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Đẩy lên GitHub
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-stone-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toastMsg">Thao tác thành công</span>
+    </div>
+  </div>
+
+  <!-- ==================== LOGIC QUẢN TRỊ & XUẤT FILE TỔNG HỢP ==================== -->
+  <script>
+    let workingBooks = [];
+    let initialBooksJson = "";
+
+    window.onload = async function() {
+      loadGithubCredentials();
+      await autoLoadBooksData();
+      lucide.createIcons();
+    };
+
+    // Tự động tìm nạp books.json
+    async function autoLoadBooksData() {
+      const badge = document.getElementById('loadStatusBadge');
+      
+      try {
+        const res = await fetch('./books.json?t=' + Date.now());
+        if (res.ok) {
+          const data = await res.json();
+          workingBooks = data;
+          initialBooksJson = JSON.stringify(data, null, 2);
+          updateStatusSuccess("Tự động nạp thành công từ `books.json`");
+          renderBooksTable();
+          return;
+        }
+      } catch (err) {}
+
+      // Thử bộ nhớ đệm
+      const cached = localStorage.getItem('navbook_cached_books_data');
+      if (cached) {
+        workingBooks = JSON.parse(cached);
+        initialBooksJson = cached;
+        updateStatusSuccess("Đã nạp từ bản lưu cache gần nhất");
+      } else {
+        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-600"></span> Chờ nạp books.json`;
+        document.getElementById('sourceFilePathInfo').innerText = "Vui lòng chọn file books.json hoặc thêm sách mới";
+        workingBooks = [];
+      }
+      renderBooksTable();
+    }
+
+    function updateStatusSuccess(msg) {
+      const badge = document.getElementById('loadStatusBadge');
+      badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800";
+      badge.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Đã kết nối dữ liệu`;
+      document.getElementById('sourceFilePathInfo').innerText = msg;
+    }
+
+    // Nạp thủ công file JSON
+    function handleManualFileLoad(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const content = event.target.result;
+        try {
+          workingBooks = JSON.parse(content);
+          initialBooksJson = JSON.stringify(workingBooks, null, 2);
+          updateStatusSuccess(`Đã nạp file: ${file.name}`);
+          saveToCache();
+          renderBooksTable();
+          showToast("Nạp file JSON thành công!");
+        } catch (err) {
+          showToast("File JSON không hợp lệ");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function saveToCache() {
+      localStorage.setItem('navbook_cached_books_data', JSON.stringify(workingBooks));
+    }
+
+    // Render bảng quản trị
+    function renderBooksTable() {
+      const tbody = document.getElementById('booksTableBody');
+      const count = document.getElementById('booksTableCount');
+      tbody.innerHTML = '';
+      count.innerText = workingBooks.length;
+
+      if (workingBooks.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-gray-400">
+              Chưa có sách nào trong thư viện. Bấm "+ Thêm Sách" để bắt đầu.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      workingBooks.forEach((book, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-sand-50/80 transition-colors";
+
+        tr.innerHTML = `
+          <td class="p-3.5 pl-5">
+            <img 
+              src="${book.coverUrl || 'https://placehold.co/100x150/3A352F/FBF9F5?text=Nav'}" 
+              alt="${book.title}" 
+              class="w-10 h-14 object-cover rounded-md shadow-xs border border-sand-300"
+              onerror="this.src='https://placehold.co/100x150/3A352F/FBF9F5?text=Nav'"
+            >
+          </td>
+          <td class="p-3.5">
+            <div class="font-bold text-sand-900">${book.title}</div>
+            <div class="text-xs text-gray-500">${book.author}</div>
+          </td>
+          <td class="p-3.5">
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sand-200/70 text-sand-800">
+              ${book.category || 'Văn học'}
+            </span>
+          </td>
+          <td class="p-3.5 font-medium text-sand-800">
+            ${book.totalPages || '?'} trang
+          </td>
+          <td class="p-3.5">
+            <a href="${book.driveUrl}" target="_blank" class="text-xs text-amber-800 hover:underline flex items-center gap-1 font-mono max-w-[200px] truncate" title="${book.driveUrl}">
+              <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0"></i>
+              <span class="truncate">${book.driveUrl}</span>
+            </a>
+          </td>
+          <td class="p-3.5 pr-5 text-right whitespace-nowrap">
+            <button onclick="editBook('${book.id}')" class="p-1.5 hover:bg-sand-200 rounded-lg text-sand-800 transition-colors" title="Chỉnh sửa">
+              <i data-lucide="edit-3" class="w-4 h-4"></i>
+            </button>
+            <button onclick="deleteBook('${book.id}')" class="p-1.5 hover:bg-red-100 rounded-lg text-red-600 transition-colors ml-1" title="Xóa sách">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    // ================== LOGIC CHUYỂN LINK ẢNH GOOGLE DRIVE ==================
+    function convertDriveImageLink(url) {
+      if (!url) return '';
+      const trimmed = url.trim();
+      const match = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      }
+      return trimmed;
+    }
+
+    function handleCoverInputConvert(val) {
+      const converted = convertDriveImageLink(val);
+      const previewContainer = document.getElementById('coverPreviewContainer');
+      const previewImg = document.getElementById('coverPreviewImg');
+      const previewText = document.getElementById('coverPreviewUrlText');
+
+      if (converted && (converted.startsWith('http://') || converted.startsWith('https://'))) {
+        previewContainer.classList.remove('hidden');
+        previewImg.src = converted;
+        previewText.innerText = converted;
+      } else {
+        previewContainer.classList.add('hidden');
+      }
+    }
+
+    // Modal Sách
+    function openBookModal(isEdit = false) {
+      const modal = document.getElementById('bookModal');
+      document.getElementById('modalTitle').innerText = isEdit ? "Chỉnh Sửa Sách" : "Thêm Sách Mới";
+      closeSuggestions();
+      resetFetchStatus();
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBookModal() {
+      const modal = document.getElementById('bookModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('editBookId').value = '';
+      document.getElementById('modalBookTitle').value = '';
+      document.getElementById('modalBookAuthor').value = '';
+      document.getElementById('modalBookCategory').value = 'Văn học';
+      document.getElementById('modalBookDriveUrl').value = '';
+      document.getElementById('modalBookCoverUrl').value = '';
+      document.getElementById('modalBookTotalPages').value = '';
+      document.getElementById('modalBookDesc').value = '';
+      document.getElementById('coverPreviewContainer').classList.add('hidden');
+      closeSuggestions();
+      resetFetchStatus();
+    }
+
+    // ================== TÍNH NĂNG TỰ ĐỘNG TÌM & ĐIỀN THÔNG TIN SÁCH ==================
+    let fetchedBookCandidates = [];
+
+    function resetFetchStatus() {
+      const status = document.getElementById('fetchBookStatus');
+      status.className = "hidden text-[11px] mt-1 font-medium";
+      status.innerText = "";
+    }
+
+    function closeSuggestions() {
+      document.getElementById('bookSuggestionsDropdown').classList.add('hidden');
+    }
+
+    async function autoFetchBookMetadata() {
+      const titleInput = document.getElementById('modalBookTitle');
+      const query = titleInput.value.trim();
+      const status = document.getElementById('fetchBookStatus');
+      const btn = document.getElementById('btnAutoFetchBook');
+
+      if (!query) {
+        status.className = "block text-[11px] mt-1 font-medium text-amber-700";
+        status.innerText = "⚠️ Vui lòng nhập tên sách hoặc mã ISBN trước khi bấm tự điền.";
+        titleInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="w-3 h-3 border-2 border-amber-800 border-t-transparent rounded-full animate-spin"></span> Đang tìm...`;
+      status.className = "block text-[11px] mt-1 font-medium text-amber-700";
+      status.innerText = `🔍 Đang tra cứu thông tin cho "${query}"...`;
+
+      try {
+        const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5&printType=books`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error("Không thể kết nối đến máy chủ thư viện sách");
+
+        const data = await res.json();
+        if (!data.items || data.items.length === 0) {
+          status.className = "block text-[11px] mt-1 font-medium text-red-600";
+          status.innerText = `❌ Không tìm thấy thông tin phù hợp cho "${query}". Bạn có thể nhập tay.`;
+          return;
+        }
+
+        fetchedBookCandidates = data.items.map(item => {
+          const info = item.volumeInfo || {};
+          let cat = 'Văn học';
+          if (info.categories && info.categories.length > 0) {
+            const rawCat = info.categories.join(' ').toLowerCase();
+            if (rawCat.includes('computer') || rawCat.includes('tech') || rawCat.includes('design') || rawCat.includes('công nghệ')) cat = 'Công nghệ';
+            else if (rawCat.includes('business') || rawCat.includes('economic') || rawCat.includes('kinh doanh')) cat = 'Kinh doanh';
+            else if (rawCat.includes('self-help') || rawCat.includes('skill') || rawCat.includes('kỹ năng')) cat = 'Kỹ năng';
+            else if (rawCat.includes('history') || rawCat.includes('lịch sử')) cat = 'Lịch sử';
+            else if (rawCat.includes('science') || rawCat.includes('khoa học')) cat = 'Khoa học';
+          }
+
+          let cover = '';
+          if (info.imageLinks) {
+            cover = info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || '';
+            if (cover.startsWith('http://')) cover = cover.replace('http://', 'https://');
+          }
+
+          return {
+            title: info.title || query,
+            authors: (info.authors && info.authors.length > 0) ? info.authors.join(', ') : 'Chưa rõ tác giả',
+            category: cat,
+            totalPages: info.pageCount || '',
+            description: info.description ? cleanHtmlText(info.description) : '',
+            coverUrl: cover
+          };
+        });
+
+        // Nếu chỉ có 1 kết quả hoặc ấn bản đầu tiên rất khớp, tự điền ngay
+        if (fetchedBookCandidates.length === 1) {
+          applyBookMetadata(fetchedBookCandidates[0]);
+        } else {
+          // Hiển thị danh sách gợi ý để người dùng chọn ấn bản ưng ý
+          showBookSuggestions(fetchedBookCandidates);
+        }
+
+      } catch (err) {
+        status.className = "block text-[11px] mt-1 font-medium text-red-600";
+        status.innerText = `❌ Lỗi tra cứu: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-700"></i> <span>⚡ Tự điền thông tin</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function cleanHtmlText(str) {
+      const temp = document.createElement('div');
+      temp.innerHTML = str;
+      return temp.textContent || temp.innerText || "";
+    }
+
+    function showBookSuggestions(list) {
+      const dropdown = document.getElementById('bookSuggestionsDropdown');
+      const container = document.getElementById('bookSuggestionsList');
+      const status = document.getElementById('fetchBookStatus');
+      container.innerHTML = '';
+
+      status.className = "block text-[11px] mt-1 font-medium text-emerald-700";
+      status.innerText = `✨ Tìm thấy ${list.length} kết quả. Chọn cuốn sách bên dưới:`;
+
+      list.forEach((b, idx) => {
+        const item = document.createElement('div');
+        item.className = "p-2 bg-white hover:bg-amber-100/70 border border-sand-200 rounded-xl cursor-pointer flex items-center justify-between gap-3 transition-colors text-xs";
+        item.onclick = () => applyBookMetadata(b);
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            ${b.coverUrl ? `<img src="${b.coverUrl}" class="w-8 h-11 object-cover rounded shadow-2xs border border-sand-300 shrink-0">` : `<div class="w-8 h-11 bg-sand-200 rounded flex items-center justify-center text-[10px] text-gray-400 shrink-0">Bìa</div>`}
+            <div class="truncate">
+              <div class="font-bold text-sand-900 truncate">${b.title}</div>
+              <div class="text-[11px] text-gray-500 truncate">${b.authors} • ${b.totalPages ? b.totalPages + ' trang' : 'Chưa rõ trang'}</div>
+            </div>
+          </div>
+          <button type="button" class="px-2.5 py-1 bg-amber-700 text-white rounded-lg text-[11px] font-semibold shrink-0 hover:bg-amber-800">Chọn</button>
+        `;
+        container.appendChild(item);
+      });
+
+      dropdown.classList.remove('hidden');
+    }
+
+    function applyBookMetadata(meta) {
+      document.getElementById('modalBookTitle').value = meta.title;
+      document.getElementById('modalBookAuthor').value = meta.authors;
+      document.getElementById('modalBookCategory').value = meta.category || 'Văn học';
+      if (meta.totalPages) {
+        document.getElementById('modalBookTotalPages').value = meta.totalPages;
+      }
+      if (meta.description) {
+        document.getElementById('modalBookDesc').value = meta.description;
+      }
+
+      // Điền link bìa nếu ô bìa đang trống và Google Books có bìa
+      const currentCover = document.getElementById('modalBookCoverUrl').value.trim();
+      if (!currentCover && meta.coverUrl) {
+        document.getElementById('modalBookCoverUrl').value = meta.coverUrl;
+        handleCoverInputConvert(meta.coverUrl);
+      }
+
+      closeSuggestions();
+      const status = document.getElementById('fetchBookStatus');
+      status.className = "block text-[11px] mt-1 font-medium text-emerald-700";
+      status.innerHTML = `✅ Đã tự động điền Tác giả, Thể loại, Số trang & Tóm tắt cho "<strong>${meta.title}</strong>"!`;
+      showToast("Đã tự động điền thông tin sách thành công!");
+    }
+
+    function editBook(id) {
+      const book = workingBooks.find(b => b.id === id);
+      if (!book) return;
+
+      document.getElementById('editBookId').value = book.id;
+      document.getElementById('modalBookTitle').value = book.title;
+      document.getElementById('modalBookAuthor').value = book.author;
+      document.getElementById('modalBookCategory').value = book.category || 'Văn học';
+      document.getElementById('modalBookDriveUrl').value = book.driveUrl;
+      document.getElementById('modalBookCoverUrl').value = book.coverUrl || '';
+      document.getElementById('modalBookTotalPages').value = book.totalPages || '';
+      document.getElementById('modalBookDesc').value = book.description || '';
+
+      handleCoverInputConvert(book.coverUrl || '');
+      openBookModal(true);
+    }
+
+    function deleteBook(id) {
+      const book = workingBooks.find(b => b.id === id);
+      if (!book) return;
+      if (confirm(`Bạn có chắc chắn muốn xóa cuốn sách "${book.title}" khỏi thư viện?`)) {
+        workingBooks = workingBooks.filter(b => b.id !== id);
+        saveToCache();
+        renderBooksTable();
+        showToast("Đã xóa sách!");
+      }
+    }
+
+    function handleSaveBook(e) {
+      e.preventDefault();
+      const id = document.getElementById('editBookId').value;
+      const title = document.getElementById('modalBookTitle').value.trim();
+      const author = document.getElementById('modalBookAuthor').value.trim();
+      const category = document.getElementById('modalBookCategory').value;
+      const driveUrl = document.getElementById('modalBookDriveUrl').value.trim();
+      const rawCoverUrl = document.getElementById('modalBookCoverUrl').value.trim();
+      const totalPages = parseInt(document.getElementById('modalBookTotalPages').value) || 100;
+      const description = document.getElementById('modalBookDesc').value.trim();
+
+      const coverUrl = convertDriveImageLink(rawCoverUrl);
+
+      if (id) {
+        // Cập nhật
+        const index = workingBooks.findIndex(b => b.id === id);
+        if (index !== -1) {
+          workingBooks[index] = {
+            ...workingBooks[index],
+            title,
+            author,
+            category,
+            driveUrl,
+            coverUrl,
+            totalPages,
+            description
+          };
+          showToast("Đã cập nhật sách!");
+        }
+      } else {
+        // Thêm mới
+        const newBook = {
+          id: 'book-' + Date.now(),
+          title,
+          author,
+          category,
+          driveUrl,
+          coverUrl,
+          totalPages,
+          description,
+          addedAt: Date.now()
+        };
+        workingBooks.unshift(newBook);
+        showToast("Đã thêm sách mới thành công!");
+      }
+
+      saveToCache();
+      renderBooksTable();
+      closeBookModal();
+    }
+
+    // ================== TÍNH NĂNG XUẤT FILE BOOKS.JSON ==================
+    function exportBooksJsonAndHtml() {
+      if (workingBooks.length === 0) {
+        showToast("Tủ sách đang trống, hãy thêm sách trước!");
+        return;
+      }
+      const formattedJson = JSON.stringify(workingBooks, null, 2);
+
+      // Tải xuống file sao lưu gốc nếu có
+      if (initialBooksJson) {
+        downloadFile("books_backup_original.json", initialBooksJson, "application/json");
+      }
+
+      // Tải xuống file books.json mới nhất
+      setTimeout(() => {
+        downloadFile("books.json", formattedJson, "application/json");
+        showToast("Đã xuất file books.json thành công!");
+      }, 300);
+    }
+
+    function downloadFile(filename, content, type = 'text/plain') {
+      const blob = new Blob([content], { type: `${type};charset=utf-8;` });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ================== GITHUB DIRECT API COMMIT (ƯU TIÊN 3) ==================
+    function openGithubModal() {
+      document.getElementById('githubModal').classList.remove('hidden');
+      document.getElementById('githubModal').classList.add('flex');
+    }
+
+    function closeGithubModal() {
+      document.getElementById('githubModal').classList.add('hidden');
+      document.getElementById('githubModal').classList.remove('flex');
+    }
+
+    function loadGithubCredentials() {
+      document.getElementById('ghOwnerInput').value = localStorage.getItem('navbook_gh_owner') || '';
+      document.getElementById('ghRepoInput').value = localStorage.getItem('navbook_gh_repo') || '';
+      document.getElementById('ghPathInput').value = localStorage.getItem('navbook_gh_path') || 'books.json';
+      document.getElementById('ghTokenInput').value = localStorage.getItem('navbook_gh_token') || '';
+    }
+
+    async function handleDirectGithubCommit(e) {
+      e.preventDefault();
+      const owner = document.getElementById('ghOwnerInput').value.trim();
+      const repo = document.getElementById('ghRepoInput').value.trim();
+      const path = document.getElementById('ghPathInput').value.trim();
+      const token = document.getElementById('ghTokenInput').value.trim();
+      const submitBtn = document.getElementById('ghSubmitBtn');
+
+      localStorage.setItem('navbook_gh_owner', owner);
+      localStorage.setItem('navbook_gh_repo', repo);
+      localStorage.setItem('navbook_gh_path', path);
+      localStorage.setItem('navbook_gh_token', token);
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Đang đồng bộ...`;
+
+      try {
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        
+        // 1. Lấy SHA của file hiện tại trên GitHub
+        let sha = null;
+        const getRes = await fetch(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+
+        // 2. Mã hóa dữ liệu JSON thành Base64 UTF-8 an toàn
+        const jsonContent = JSON.stringify(workingBooks, null, 2);
+        const utf8Bytes = new TextEncoder().encode(jsonContent);
+        let binaryStr = "";
+        for (let i = 0; i < utf8Bytes.length; i++) {
+          binaryStr += String.fromCharCode(utf8Bytes[i]);
+        }
+        const base64Content = btoa(binaryStr);
+
+        // 3. Thực hiện PUT commit
+        const putRes = await fetch(apiUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `chore: update books library via Nav Book Admin [${new Date().toLocaleDateString('vi-VN')}]`,
+            content: base64Content,
+            sha: sha || undefined
+          })
+        });
+
+        if (!putRes.ok) {
+          const errData = await putRes.json();
+          throw new Error(errData.message || "Lỗi không xác định từ GitHub API");
+        }
+
+        showToast("Đã đẩy trực tiếp lên GitHub thành công!");
+        closeGithubModal();
+      } catch (err) {
+        showToast("Lỗi đồng bộ GitHub: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Đẩy lên GitHub`;
+        lucide.createIcons();
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
