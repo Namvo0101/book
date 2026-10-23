@@ -1,46 +1,46 @@
 [
-{
-"id": "book-1792781605886",
-"title": "Chiến tranh và hòa bình",
-"author": "Lev Tolstoy",
-"category": "Văn học",
-"driveUrl": "https://drive.google.com/file/d/13YL9q-PvvRkgE3f-OLbjZtoz_4C0CHpO/view?usp=drive_link",
-"coverUrl": "https://lh3.googleusercontent.com/d/1R2Kh2lDaonke0Y4gGY-A2yXNWA8sKyRy",
-"totalPages": 2561,
-"description": "Kiệt tác văn học kinh điển thế giới của đại văn hào Lev Tolstoy về lịch sử và số phận con người.",
-"addedAt": 1792781605886
-},
-{
-"id": "book-1792781502613",
-"title": "Hai số phận",
-"author": "Jeffrey Archer",
-"category": "Văn học",
-"driveUrl": "https://drive.google.com/file/d/1Bgr5tTTn-YSPp23JVjUKFG-KGpmHtYKf/view?usp=drive_link",
-"coverUrl": "https://lh3.googleusercontent.com/d/1CcX8m1zxHM0KyYfwPT1ex6lbhgN-8BFC",
-"totalPages": 557,
-"description": "Hai con người sinh ra cùng một ngày ở hai hoàn cảnh trái ngược, định mệnh đan xen qua nhiều thập kỷ.",
-"addedAt": 1792781502613
-},
-{
-"id": "book-1792781219577",
-"title": "Lược sử loài người",
-"author": "Yuval Noah Harari",
-"category": "Văn học",
-"driveUrl": "https://drive.google.com/file/d/13HH2_zHsTH2CMtlyFs6OgSn9y3zcImRh/view?usp=drive_link",
-"coverUrl": "https://lh3.googleusercontent.com/d/1hTqqqiiVMcIjvgUYmh3aglq1cd6Kp-pt",
-"totalPages": 677,
-"description": "Khám phá hành trình tiến hóa vĩ đại và toàn cảnh lịch sử nhân loại từ thời kỳ đồ đá đến nay.",
-"addedAt": 1792781219577
-},
-{
-"id": "book-1792778636807",
-"title": "SoC Physical Design",
-"author": "Veena S. Chakravarthi",
-"category": "Công nghệ",
-"driveUrl": "https://drive.google.com/file/d/1GGBMkOvImPRut0f9xGAnclUwc3h1a4ea/view?usp=sharing",
-"coverUrl": "https://lh3.googleusercontent.com/d/1ZlxmKCb3Ur8VgPBwLuK4lRfRbT4NgvOa",
-"totalPages": 173,
-"description": "Tài liệu chuyên sâu về thiết kế vi mạch tích hợp hệ thống (System on Chip Physical Design).",
-"addedAt": 1792778636807
-}
+  {
+    "id": "book-1792781605886",
+    "title": "Chiến tranh và hòa bình",
+    "author": "Lev Tolstoy",
+    "category": "Văn học",
+    "driveUrl": "https://drive.google.com/file/d/13YL9q-PvvRkgE3f-OLbjZtoz_4C0CHpO/view?usp=drive_link",
+    "coverUrl": "https://lh3.googleusercontent.com/d/1R2Kh2lDaonke0Y4gGY-A2yXNWA8sKyRy",
+    "totalPages": 2561,
+    "description": "Kiệt tác văn học kinh điển thế giới của đại văn hào Lev Tolstoy về lịch sử và số phận con người.",
+    "addedAt": 1792781605886
+  },
+  {
+    "id": "book-1792781502613",
+    "title": "Hai số phận",
+    "author": "Jeffrey Archer",
+    "category": "Văn học",
+    "driveUrl": "https://drive.google.com/file/d/1Bgr5tTTn-YSPp23JVjUKFG-KGpmHtYKf/view?usp=drive_link",
+    "coverUrl": "https://lh3.googleusercontent.com/d/1CcX8m1zxHM0KyYfwPT1ex6lbhgN-8BFC",
+    "totalPages": 557,
+    "description": "Hai con người sinh ra cùng một ngày ở hai hoàn cảnh trái ngược, định mệnh đan xen qua nhiều thập kỷ.",
+    "addedAt": 1792781502613
+  },
+  {
+    "id": "book-1792781219577",
+    "title": "Lược sử loài người",
+    "author": "Yuval Noah Harari",
+    "category": "Văn học",
+    "driveUrl": "https://drive.google.com/file/d/13HH2_zHsTH2CMtlyFs6OgSn9y3zcImRh/view?usp=drive_link",
+    "coverUrl": "https://lh3.googleusercontent.com/d/1hTqqqiiVMcIjvgUYmh3aglq1cd6Kp-pt",
+    "totalPages": 677,
+    "description": "Khám phá hành trình tiến hóa vĩ đại và toàn cảnh lịch sử nhân loại từ thời kỳ đồ đá đến nay.",
+    "addedAt": 1792781219577
+  },
+  {
+    "id": "book-1792778636807",
+    "title": "SoC Physical Design",
+    "author": "Veena S. Chakravarthi",
+    "category": "Công nghệ",
+    "driveUrl": "https://drive.google.com/file/d/1GGBMkOvImPRut0f9xGAnclUwc3h1a4ea/view?usp=sharing",
+    "coverUrl": "https://lh3.googleusercontent.com/d/1ZlxmKCb3Ur8VgPBwLuK4lRfRbT4NgvOa",
+    "totalPages": 173,
+    "description": "Tài liệu chuyên sâu về thiết kế vi mạch tích hợp hệ thống (System on Chip Physical Design).",
+    "addedAt": 1792778636807
+  }
 ]
