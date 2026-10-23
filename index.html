@@ -54,7 +54,7 @@
 <body class="bg-sand-50 text-sand-900 font-sans antialiased min-h-screen flex flex-col selection:bg-amber-100 selection:text-amber-900">
 
   <!-- ==================== HEADER ==================== -->
-  <header class="sticky top-0 z-40 bg-sand-50/90 backdrop-blur-md border-b border-sand-200/80 transition-colors">
+  <header id="mainHeader" class="sticky top-0 z-40 bg-sand-50/90 backdrop-blur-md border-b border-sand-200/80 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <!-- Logo -->
       <div class="flex items-center space-x-3 cursor-pointer" onclick="closeReader()">
@@ -84,7 +84,7 @@
   </header>
 
   <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <main id="mainContainer" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- ========== VIEW 1: TRANG CHỦ (TỦ SÁCH ĐỘC GIẢ) ========== -->
     <section id="viewHome" class="space-y-8">
@@ -135,100 +135,99 @@
       </div>
     </section>
 
-    <!-- ========== VIEW 2: TRÌNH ĐỌC SÁCH (READER VIEW) ========== -->
-    <section id="viewReader" class="hidden flex-col h-[calc(100vh-6.5rem)]">
-      <!-- Thanh công cụ điều khiển -->
-      <div class="bg-sand-100 border border-sand-200 rounded-2xl p-2.5 sm:p-3 mb-3 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center gap-3 min-w-0">
+    <!-- ========== VIEW 2: TRÌNH ĐỌC SÁCH TOÀN CẢNH (MAXIMIZED THEATRE READER) ========== -->
+    <section id="viewReader" class="hidden fixed inset-0 z-50 bg-stone-900/95 flex flex-col h-screen w-screen overflow-hidden">
+      <!-- Thanh điều hướng nhỏ gọn (Compact Reader Header) -->
+      <div class="h-12 bg-stone-900 border-b border-stone-800 px-3 sm:px-5 flex items-center justify-between text-white shrink-0 shadow-md">
+        <!-- Nút quay lại & Tiêu đề sách -->
+        <div class="flex items-center gap-3 min-w-0 pr-2">
           <button 
             onclick="closeReader()" 
-            class="p-2 rounded-xl hover:bg-sand-200 text-sand-800 transition-colors flex items-center gap-1.5 text-xs font-semibold"
-            title="Quay lại Tủ sách"
+            class="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 transition-colors flex items-center gap-1.5 text-xs font-semibold shrink-0"
+            title="Đóng sách và về Tủ sách (Esc)"
           >
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
             <span class="hidden sm:inline">Tủ sách</span>
           </button>
-          <div class="border-l border-sand-300 h-5"></div>
+          
+          <div class="border-l border-stone-700 h-4 hidden sm:block"></div>
+          
           <div class="truncate">
-            <h2 id="readerBookTitle" class="font-serif font-bold text-sm sm:text-base text-sand-900 truncate">Tên Sách</h2>
-            <p id="readerBookAuthor" class="text-[11px] text-gray-500 truncate">Tác giả</p>
+            <h2 id="readerBookTitle" class="font-serif font-bold text-xs sm:text-sm text-stone-100 truncate">Tên Sách</h2>
+            <p id="readerBookAuthor" class="text-[10px] text-stone-400 truncate hidden md:block">Tác giả</p>
           </div>
         </div>
 
-        <!-- Điều hướng & Chọn trang -->
-        <div class="flex items-center gap-2 sm:gap-3 ml-auto">
-          <!-- Chế độ lật trang / cuộn -->
-          <div class="bg-sand-200/80 p-0.5 rounded-lg flex text-xs">
-            <button id="modeFlipBtn" onclick="setReadingMode('flip')" class="px-2.5 py-1 rounded-md text-xs font-medium text-amber-900 bg-white shadow-xs transition-all flex items-center gap-1">
-              <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-              <span class="hidden md:inline">Lật trang</span>
-            </button>
-            <button id="modeScrollBtn" onclick="setReadingMode('scroll')" class="px-2.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-sand-900 transition-all flex items-center gap-1">
-              <i data-lucide="scroll" class="w-3.5 h-3.5"></i>
-              <span class="hidden md:inline">Cuộn dọc</span>
-            </button>
-          </div>
+        <!-- Các công cụ điều hướng & hiển thị -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <!-- Chế độ hiển thị: Vừa trang hoặc Rộng ngang -->
+          <button 
+            id="toggleFrameWidthBtn"
+            onclick="toggleFrameWidth()" 
+            class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-[11px] text-stone-300 transition-colors"
+            title="Đổi khung vừa vặn hoặc mở rộng ngang"
+          >
+            <i data-lucide="stretch-horizontal" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span id="widthModeLabel">Khung chuẩn</span>
+          </button>
 
           <!-- Bộ điều khiển trang -->
-          <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-sand-200 text-xs shadow-2xs">
-            <button onclick="changePage(-1)" class="p-1 hover:bg-sand-100 rounded text-sand-800" title="Trang trước (←)">
-              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          <div class="flex items-center gap-1 bg-stone-800 px-2 py-1 rounded-lg border border-stone-700 text-xs">
+            <button onclick="changePage(-1)" class="p-1 hover:bg-stone-700 rounded text-stone-300" title="Trang trước (←)">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
             </button>
             <div class="flex items-center gap-1 px-1">
-              <span class="text-gray-400">Trang</span>
+              <span class="text-stone-400 text-[11px] hidden sm:inline">Trang</span>
               <input 
                 type="number" 
                 id="readerCurrentPageInput" 
                 min="1" 
                 value="1" 
                 onchange="goToPage(this.value)"
-                class="w-10 text-center font-semibold bg-transparent focus:outline-none focus:border-amber-600 border-b border-transparent text-amber-900"
+                class="w-9 text-center font-semibold bg-stone-900 border border-stone-700 rounded py-0.5 text-amber-400 focus:outline-none focus:border-amber-500 text-xs"
               >
-              <span class="text-gray-400" id="totalPagesCount">/ ...</span>
+              <span class="text-stone-400 text-[11px]" id="totalPagesCount">/ ...</span>
             </div>
-            <button onclick="changePage(1)" class="p-1 hover:bg-sand-100 rounded text-sand-800" title="Trang sau (→)">
-              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <button onclick="changePage(1)" class="p-1 hover:bg-stone-700 rounded text-stone-300" title="Trang sau (→)">
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
             </button>
           </div>
 
-          <!-- Huy hiệu đã tự lưu trang -->
-          <span id="saveIndicator" class="hidden text-[11px] text-emerald-700 font-medium items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md">
-            <i data-lucide="check" class="w-3 h-3"></i> Đã nhớ trang
+          <!-- Huy hiệu đã lưu trang -->
+          <span id="saveIndicator" class="hidden text-[10px] text-emerald-400 font-medium items-center gap-1 px-2 py-0.5 bg-emerald-950/60 border border-emerald-800 rounded-md">
+            <i data-lucide="check" class="w-3 h-3"></i> <span class="hidden md:inline">Đã nhớ</span>
           </span>
 
-          <!-- Toàn màn hình -->
-          <button onclick="toggleFullscreen()" class="p-2 rounded-xl bg-white border border-sand-200 text-sand-800 hover:bg-sand-100 transition-colors" title="Toàn màn hình">
-            <i data-lucide="maximize" class="w-4 h-4"></i>
+          <!-- Mở Drive ngoài -->
+          <a id="driveOriginalLink" href="#" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 transition-colors" title="Mở trực tiếp trên Google Drive">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+
+          <!-- Toàn màn hình trình duyệt -->
+          <button onclick="toggleFullscreen()" class="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 transition-colors" title="Toàn màn hình">
+            <i data-lucide="maximize-2" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
-      <!-- Viewport nhúng Google Drive Reader -->
-      <div id="readerViewport" class="flex-1 relative bg-white border border-sand-200 rounded-2xl shadow-inner overflow-hidden flex flex-col">
-        <div id="driveFrameContainer" class="w-full h-full relative">
+      <!-- Không gian đọc sách bao trọn màn hình -->
+      <div id="readerViewport" class="flex-1 w-full h-[calc(100vh-3rem)] bg-stone-950 flex justify-center items-center overflow-hidden p-0 sm:p-2">
+        <div id="driveFrameWrapper" class="w-full h-full max-w-5xl bg-stone-900 shadow-2xl transition-all duration-300 relative rounded-none sm:rounded-xl overflow-hidden border border-stone-800">
           <iframe 
             id="driveIframe" 
             src="" 
-            class="w-full h-full border-0"
+            class="w-full h-full border-0 bg-white"
             allow="autoplay"
             title="Đọc sách từ Google Drive">
           </iframe>
-          <div class="absolute bottom-4 right-4 pointer-events-none flex gap-2">
-            <div class="pointer-events-auto bg-stone-900/80 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
-              <span id="floatingPageBadge">Đang đọc trang 1</span>
-              <span class="text-stone-400">• Tự động lưu tiến độ</span>
+          
+          <!-- Huy hiệu nổi góc dưới thông báo trang -->
+          <div class="absolute bottom-3 right-3 pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
+            <div class="pointer-events-auto bg-stone-900/90 backdrop-blur-md text-white text-[11px] px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg border border-stone-700">
+              <span id="floatingPageBadge" class="text-amber-400 font-medium">Đang đọc trang 1</span>
+              <span class="text-stone-400 hidden sm:inline">• Tự nhớ trang</span>
             </div>
           </div>
-        </div>
-
-        <div class="bg-amber-50/90 border-t border-amber-200/60 px-4 py-2 flex items-center justify-between text-xs text-amber-900">
-          <div class="flex items-center gap-2">
-            <i data-lucide="info" class="w-4 h-4 text-amber-700 shrink-0"></i>
-            <span>Dùng phím mũi tên <strong>←</strong> và <strong>→</strong> để lật trang nhanh. Lần sau mở sách sẽ tiếp tục ở đúng trang này.</span>
-          </div>
-          <a id="driveOriginalLink" href="#" target="_blank" rel="noopener noreferrer" class="font-medium underline hover:text-amber-800 flex items-center gap-1 shrink-0 ml-2">
-            Mở ở Drive <i data-lucide="external-link" class="w-3 h-3"></i>
-          </a>
         </div>
       </div>
     </section>
@@ -236,6 +235,7 @@
   </main>
 
   <!-- ==================== FOOTER ==================== -->
+  <footer id="mainFooter" class="mt-auto border-t border-sand-200 bg-sand-100/60 text-center py-6 text-xs text-gray-500">
   <footer class="mt-auto border-t border-sand-200 bg-sand-100/60 text-center py-6 text-xs text-gray-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
       <div class="flex items-center gap-2">
@@ -258,73 +258,62 @@
   <!-- Khối dữ liệu này được đọc và cập nhật tự động từ trang admin.html -->
   <script id="nav-book-database">
     window.NAV_BOOKS_DATA = [
-  {
-    "id": "book-1792778636807",
-    "title": "SoC Physical Design",
-    "author": "Veena S. Chakravarthi",
-    "category": "Công nghệ",
-    "driveUrl": "https://drive.google.com/file/d/1GGBMkOvImPRut0f9xGAnclUwc3h1a4ea/view?usp=sharing",
-    "coverUrl": "https://lh3.googleusercontent.com/d/1ZlxmKCb3Ur8VgPBwLuK4lRfRbT4NgvOa",
-    "totalPages": 173,
-    "description": "Sách về thiết kế vi mạch SoC.",
-    "addedAt": 1792778636807
-  },
-  {
-    "id": "book-1",
-    "title": "Hoàng Tử Bé (Le Petit Prince)",
-    "author": "Antoine de Saint-Exupéry",
-    "category": "Văn học",
-    "driveUrl": "https://drive.google.com/file/d/1B6mJm8Wv8-sample1/preview",
-    "coverUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600",
-    "totalPages": 96,
-    "description": "Tác phẩm văn học kinh điển về cuộc phiêu lưu của cậu bé tóc vàng đến từ tiểu hành tinh B-612.",
-    "addedAt": 1700000000000
-  },
-  {
-    "id": "book-2",
-    "title": "Tư Duy Nhanh Và Chậm (Thinking, Fast and Slow)",
-    "author": "Daniel Kahneman",
-    "category": "Kỹ năng",
-    "driveUrl": "https://drive.google.com/file/d/1C7nKn9Xw9-sample2/preview",
-    "coverUrl": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=600",
-    "totalPages": 450,
-    "description": "Khám phá hai hệ thống tư duy chi phối cách con người nhận định và đưa ra quyết định.",
-    "addedAt": 1700000100000
-  },
-  {
-    "id": "book-3",
-    "title": "Nhà Giả Kim (The Alchemist)",
-    "author": "Paulo Coelho",
-    "category": "Văn học",
-    "driveUrl": "https://drive.google.com/file/d/1D8oLo0Yx0-sample3/preview",
-    "coverUrl": "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=600",
-    "totalPages": 180,
-    "description": "Hành trình đi tìm kho báu và sứ mệnh cuộc đời của chàng chăn cừu Santiago.",
-    "addedAt": 1700000200000
-  },
-  {
-    "id": "book-4",
-    "title": "Lược Sử Loài Người (Sapiens)",
-    "author": "Yuval Noah Harari",
-    "category": "Kinh doanh",
-    "driveUrl": "https://drive.google.com/file/d/1E9pMp1Zy1-sample4/preview",
-    "coverUrl": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600",
-    "totalPages": 512,
-    "description": "Cái nhìn sâu rộng về lịch sử tiến hóa và văn minh nhân loại.",
-    "addedAt": 1700000300000
-  },
-  {
-    "id": "book-5",
-    "title": "Clean Code - Nghệ Thuật Viết Mã Sạch",
-    "author": "Robert C. Martin",
-    "category": "Công nghệ",
-    "driveUrl": "https://drive.google.com/file/d/1F0qNq2Az2-sample5/preview",
-    "coverUrl": "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&q=80&w=600",
-    "totalPages": 380,
-    "description": "Nguyên lý cốt lõi viết mã nguồn sáng sủa, dễ bảo trì cho các lập trình viên chuyên nghiệp.",
-    "addedAt": 1700000400000
-  }
-];
+      {
+        id: "book-1",
+        title: "Hoàng Tử Bé (Le Petit Prince)",
+        author: "Antoine de Saint-Exupéry",
+        category: "Văn học",
+        driveUrl: "https://drive.google.com/file/d/1B6mJm8Wv8-sample1/preview",
+        coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600",
+        totalPages: 96,
+        description: "Tác phẩm văn học kinh điển về cuộc phiêu lưu của cậu bé tóc vàng đến từ tiểu hành tinh B-612.",
+        addedAt: 1700000000000
+      },
+      {
+        id: "book-2",
+        title: "Tư Duy Nhanh Và Chậm (Thinking, Fast and Slow)",
+        author: "Daniel Kahneman",
+        category: "Kỹ năng",
+        driveUrl: "https://drive.google.com/file/d/1C7nKn9Xw9-sample2/preview",
+        coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=600",
+        totalPages: 450,
+        description: "Khám phá hai hệ thống tư duy chi phối cách con người nhận định và đưa ra quyết định.",
+        addedAt: 1700000100000
+      },
+      {
+        id: "book-3",
+        title: "Nhà Giả Kim (The Alchemist)",
+        author: "Paulo Coelho",
+        category: "Văn học",
+        driveUrl: "https://drive.google.com/file/d/1D8oLo0Yx0-sample3/preview",
+        coverUrl: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=600",
+        totalPages: 180,
+        description: "Hành trình đi tìm kho báu và sứ mệnh cuộc đời của chàng chăn cừu Santiago.",
+        addedAt: 1700000200000
+      },
+      {
+        id: "book-4",
+        title: "Lược Sử Loài Người (Sapiens)",
+        author: "Yuval Noah Harari",
+        category: "Kinh doanh",
+        driveUrl: "https://drive.google.com/file/d/1E9pMp1Zy1-sample4/preview",
+        coverUrl: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600",
+        totalPages: 512,
+        description: "Cái nhìn sâu rộng về lịch sử tiến hóa và văn minh nhân loại.",
+        addedAt: 1700000300000
+      },
+      {
+        id: "book-5",
+        title: "Clean Code - Nghệ Thuật Viết Mã Sạch",
+        author: "Robert C. Martin",
+        category: "Công nghệ",
+        driveUrl: "https://drive.google.com/file/d/1F0qNq2Az2-sample5/preview",
+        coverUrl: "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&q=80&w=600",
+        totalPages: 380,
+        description: "Nguyên lý cốt lõi viết mã nguồn sáng sủa, dễ bảo trì cho các lập trình viên chuyên nghiệp.",
+        addedAt: 1700000400000
+      }
+    ];
   </script>
 
   <!-- ==================== JAVASCRIPT READER ==================== -->
@@ -336,6 +325,7 @@
     let readingMode = 'flip';
     let currentCategoryFilter = 'all';
     let searchQuery = '';
+    let isFullWidthMode = false;
 
     window.onload = function() {
       loadReadingProgress();
@@ -465,6 +455,7 @@
       const saved = readingProgress[bookId];
       currentReadingPage = saved && saved.lastPage ? saved.lastPage : 1;
 
+      // Cập nhật thông tin trên thanh điều khiển
       document.getElementById('readerBookTitle').innerText = book.title;
       document.getElementById('readerBookAuthor').innerText = book.author;
       document.getElementById('readerCurrentPageInput').value = currentReadingPage;
@@ -475,11 +466,15 @@
       document.getElementById('driveIframe').src = finalUrl;
       document.getElementById('driveOriginalLink').href = book.driveUrl;
 
+      // Ẩn Header, Footer và hiển thị chế độ đọc toàn màn hình tối ưu
+      document.getElementById('mainHeader').classList.add('hidden');
+      document.getElementById('mainFooter').classList.add('hidden');
       document.getElementById('viewHome').classList.add('hidden');
       document.getElementById('viewReader').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden'); // Tránh thanh cuộn body gây xáo trộn
+
       lucide.createIcons();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      showToast(`Đang tiếp tục ở trang ${currentReadingPage}`);
+      showToast(`Mở sách ở kích thước tối ưu (Trang ${currentReadingPage})`);
     }
 
     function closeReader() {
@@ -488,10 +483,34 @@
       }
       document.getElementById('driveIframe').src = '';
       currentReadingBook = null;
+
+      // Hiển thị lại Header, Footer và Tủ sách
+      document.getElementById('mainHeader').classList.remove('hidden');
+      document.getElementById('mainFooter').classList.remove('hidden');
       document.getElementById('viewReader').classList.add('hidden');
       document.getElementById('viewHome').classList.remove('hidden');
+      document.body.classList.remove('overflow-hidden');
+
       renderBookGrid();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleFrameWidth() {
+      const wrapper = document.getElementById('driveFrameWrapper');
+      const label = document.getElementById('widthModeLabel');
+      isFullWidthMode = !isFullWidthMode;
+
+      if (isFullWidthMode) {
+        wrapper.classList.remove('max-w-5xl');
+        wrapper.classList.add('max-w-full', 'rounded-none');
+        label.innerText = "Tràn viền";
+        showToast("Đã chuyển chế độ đọc tràn viền màn hình");
+      } else {
+        wrapper.classList.add('max-w-5xl');
+        wrapper.classList.remove('max-w-full', 'rounded-none');
+        label.innerText = "Khung chuẩn";
+        showToast("Đã chuyển về khung tỷ lệ trang chuẩn");
+      }
     }
 
     function goToPage(page) {
@@ -528,24 +547,8 @@
       }, 1500);
     }
 
-    function setReadingMode(mode) {
-      readingMode = mode;
-      const flipBtn = document.getElementById('modeFlipBtn');
-      const scrollBtn = document.getElementById('modeScrollBtn');
-
-      if (mode === 'flip') {
-        flipBtn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-amber-900 bg-white shadow-xs transition-all flex items-center gap-1";
-        scrollBtn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-sand-900 transition-all flex items-center gap-1";
-        showToast("Đã chọn chế độ Lật trang");
-      } else {
-        scrollBtn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-amber-900 bg-white shadow-xs transition-all flex items-center gap-1";
-        flipBtn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-gray-600 hover:text-sand-900 transition-all flex items-center gap-1";
-        showToast("Đã chọn chế độ Cuộn dọc");
-      }
-    }
-
     function toggleFullscreen() {
-      const elem = document.getElementById('readerViewport');
+      const elem = document.getElementById('viewReader');
       if (!document.fullscreenElement) {
         elem.requestFullscreen().catch(() => showToast("Trình duyệt không hỗ trợ toàn màn hình"));
       } else {
@@ -562,6 +565,8 @@
           changePage(1);
         } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
           changePage(-1);
+        } else if (e.key === 'Escape') {
+          closeReader();
         }
       });
     }
